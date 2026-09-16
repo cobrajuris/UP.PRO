@@ -1,0 +1,12 @@
+{
+  "appId": "com.uppro.treinos",
+  "appName": "UP.PRO",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#17171b",
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

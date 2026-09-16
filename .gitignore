@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.vite/
+.DS_Store
+*.log
+
+# Arquivos locais do Android
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+
+# Editor e sistema
+.idea/
+.vscode/
+Thumbs.db
+
