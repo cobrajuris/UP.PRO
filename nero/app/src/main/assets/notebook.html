@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nero · Notebook</title>
+<style>
+:root{
+  --bg:#0c0c11; --glass:rgba(40,40,50,.55); --line:rgba(255,255,255,.10); --ink:#f5f5f7; --ink2:#a0a0ab; --ink3:#6b6b76;
+  --accent:#8fb4ff; --ok:#5fe3a1; --bad:#ff6b5e;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink)}
+body{background:
+  radial-gradient(60% 50% at 10% 0%,rgba(91,75,214,.45),transparent 70%),
+  radial-gradient(50% 40% at 100% 30%,rgba(224,86,125,.30),transparent 70%),
+  radial-gradient(70% 50% at 50% 100%,rgba(29,138,158,.35),transparent 70%),var(--bg);
+  background-attachment:fixed;padding:32px 16px 48px}
+.wrap{max-width:880px;margin:0 auto;display:grid;gap:18px}
+.glass{background:var(--glass);backdrop-filter:blur(28px) saturate(170%);-webkit-backdrop-filter:blur(28px) saturate(170%);
+  border:1px solid var(--line);border-radius:26px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 20px 50px -25px rgba(0,0,0,.6)}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 22px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{margin:0;font-size:24px;font-weight:700;letter-spacing:-.3px}
+.brand span{color:var(--ink2);font-size:14px}
+.spark{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,#5b4bd6,#e0567d 60%,#1d8a9e)}
+.status{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:8px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ink3)}
+.dot.on{background:var(--ok);box-shadow:0 0 10px var(--ok)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+section{padding:20px 20px 16px;min-width:0}
+h2{margin:0 0 4px;font-size:17px}
+.sub{margin:0 0 14px;color:var(--ink2);font-size:13.5px}
+.list{display:grid;gap:8px}
+.item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.06)}
+.ic{flex:none;width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:rgba(143,180,255,.16);color:var(--accent);font-size:12px;font-weight:700;text-transform:uppercase}
+.meta{flex:1;min-width:0}
+.meta b{display:block;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta span{font-size:12px;color:var(--ink2)}
+button,.btn{all:unset;cursor:pointer;padding:8px 14px;border-radius:999px;background:rgba(255,255,255,.12);font-size:13px;font-weight:600;color:var(--ink)}
+button:hover,.btn:hover{background:rgba(255,255,255,.2)}
+button:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.primary{background:var(--ink);color:#0c0c11}
+.primary:hover{background:#fff}
+.empty{padding:22px 12px;text-align:center;color:var(--ink3);font-size:13.5px;border:1px dashed var(--line);border-radius:16px}
+.drop{display:grid;place-items:center;gap:8px;text-align:center;padding:30px 16px;border-radius:20px;border:1.5px dashed rgba(255,255,255,.22);color:var(--ink2);transition:background .2s,border-color .2s;cursor:pointer}
+.drop.over{background:rgba(143,180,255,.12);border-color:var(--accent);color:var(--ink)}
+.drop strong{color:var(--ink);font-size:15px}
+.bar{height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .15s}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+label.toggle{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2);cursor:pointer}
+.pin{display:grid;place-items:center;min-height:70vh}
+.pin .glass{padding:30px 26px;width:min(380px,100%);text-align:center}
+.pin input{all:unset;box-sizing:border-box;width:100%;text-align:center;letter-spacing:14px;font-size:30px;font-weight:600;padding:12px;margin:18px 0 12px;border-radius:16px;background:rgba(255,255,255,.08);font-variant-numeric:tabular-nums}
+.err{color:var(--bad);font-size:13px;min-height:18px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="pin" id="pinView" hidden>
+    <div class="glass">
+      <div class="spark" style="margin:0 auto 12px">✦</div>
+      <h1 style="margin:0;font-size:22px">Conectar ao Nero</h1>
+      <p class="sub" style="margin-top:6px">Digite o PIN que aparece no app Nero, na aba Notebook.</p>
+      <form id="pinForm">
+        <input id="pinInput" inputmode="numeric" maxlength="4" autocomplete="off" aria-label="PIN de 4 dígitos">
+        <div class="err" id="pinErr"></div>
+        <button class="primary" type="submit" style="margin-top:8px;padding:11px 26px">Conectar</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="appView" hidden>
+    <header class="glass">
+      <div class="brand"><div class="spark">✦</div><div><h1>Nero</h1><span id="device">Celular</span></div></div>
+      <div class="status"><i class="dot" id="dot"></i><span id="statusText">Conectando…</span></div>
+    </header>
+
+    <div class="grid" style="margin-top:18px">
+      <section class="glass">
+        <div class="row">
+          <div><h2>Do celular</h2><p class="sub" style="margin:0">Arquivos enviados pelo Nero ou pelo “Compartilhar”.</p></div>
+          <label class="toggle"><input type="checkbox" id="auto"> Baixar novos sozinho</label>
+        </div>
+        <div class="list" id="files"></div>
+      </section>
+
+      <section class="glass">
+        <h2>Para o celular</h2>
+        <p class="sub">Os arquivos vão para a pasta Downloads/Nero do celular.</p>
+        <label class="drop" id="drop" for="picker">
+          <strong>Arraste arquivos aqui</strong>
+          <span>ou clique para escolher</span>
+        </label>
+        <input type="file" id="picker" multiple hidden>
+        <div class="list" id="uploads" style="margin-top:12px"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var pin = "";
+  try { pin = localStorage.getItem("nero-pin") || ""; } catch (e) {}
+  var known = {};
+  var first = true;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function fmt(n) {
+    if (n < 1024) return n + " B";
+    if (n < 1048576) return (n / 1024).toFixed(0) + " KB";
+    if (n < 1073741824) return (n / 1048576).toFixed(1) + " MB";
+    return (n / 1073741824).toFixed(2) + " GB";
+  }
+  function ext(name) { var i = name.lastIndexOf("."); return i > 0 ? name.slice(i + 1, i + 4) : "arq"; }
+  function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+  function showPin(msg) {
+    $("appView").hidden = true; $("pinView").hidden = false;
+    $("pinErr").textContent = msg || ""; $("pinInput").focus();
+  }
+  function showApp() { $("pinView").hidden = true; $("appView").hidden = false; }
+
+  $("pinForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    pin = $("pinInput").value.trim();
+    try { localStorage.setItem("nero-pin", pin); } catch (err) {}
+    first = true;
+    poll();
+  });
+
+  function download(f) {
+    var a = document.createElement("a");
+    a.href = "/api/file/" + encodeURIComponent(f.id) + "?pin=" + encodeURIComponent(pin);
+    a.download = f.name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  function render(files) {
+    var box = $("files");
+    if (!files.length) { box.innerHTML = '<div class="empty">Nada por aqui. No celular, toque em Compartilhar → “Enviar ao notebook”.</div>'; return; }
+    box.innerHTML = "";
+    files.forEach(function (f) {
+      var el = document.createElement("div");
+      el.className = "item";
+      el.innerHTML = '<div class="ic">' + esc(ext(f.name)) + '</div><div class="meta"><b title="' + esc(f.name) + '">' + esc(f.name) +
+        '</b><span>' + fmt(f.size) + ' · ' + new Date(f.addedAt).toLocaleTimeString("pt-BR", {hour: "2-digit", minute: "2-digit"}) +
+        '</span></div><button class="primary">Baixar</button><button aria-label="Remover">✕</button>';
+      var b = el.querySelectorAll("button");
+      b[0].onclick = function () { download(f); };
+      b[1].onclick = function () {
+        fetch("/api/file/" + encodeURIComponent(f.id), {method: "DELETE", headers: {"X-Nero-Pin": pin}}).then(poll);
+      };
+      box.appendChild(el);
+    });
+  }
+
+  function poll() {
+    if (!pin) { showPin(); return; }
+    fetch("/api/files", {headers: {"X-Nero-Pin": pin}, cache: "no-store"})
+      .then(function (r) {
+        if (r.status === 401) { throw new Error("pin"); }
+        return r.json();
+      })
+      .then(function (data) {
+        showApp();
+        $("dot").className = "dot on";
+        $("statusText").textContent = "Conectado";
+        $("device").textContent = data.device || "Celular";
+        var files = data.files || [];
+        if (!first && $("auto").checked) {
+          files.forEach(function (f) { if (!known[f.id]) download(f); });
+        }
+        known = {};
+        files.forEach(function (f) { known[f.id] = true; });
+        first = false;
+        render(files);
+      })
+      .catch(function (e) {
+        if (e.message === "pin") { showPin(pin ? "PIN incorreto. Confira no app Nero." : ""); return; }
+        $("dot").className = "dot";
+        $("statusText").textContent = "Celular fora do ar. Verifique o Wi‑Fi.";
+      });
+  }
+
+  function upload(file) {
+    var row = document.createElement("div");
+    row.className = "item";
+    row.innerHTML = '<div class="ic">' + esc(ext(file.name)) + '</div><div class="meta"><b>' + esc(file.name) +
+      '</b><span>' + fmt(file.size) + '</span><div class="bar"><i></i></div></div>';
+    $("uploads").prepend(row);
+    var bar = row.querySelector(".bar i"), info = row.querySelector(".meta span");
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/upload?name=" + encodeURIComponent(file.name));
+    xhr.setRequestHeader("X-Nero-Pin", pin);
+    xhr.upload.onprogress = function (e) { if (e.lengthComputable) bar.style.width = (e.loaded / e.total * 100) + "%"; };
+    xhr.onload = function () {
+      if (xhr.status === 200) { bar.style.width = "100%"; bar.style.background = "var(--ok)"; info.textContent = fmt(file.size) + " · chegou no celular"; }
+      else if (xhr.status === 401) { showPin("PIN incorreto."); }
+      else { bar.style.background = "var(--bad)"; info.textContent = "Falhou. Tente de novo."; }
+    };
+    xhr.onerror = function () { bar.style.background = "var(--bad)"; info.textContent = "Sem conexão com o celular."; };
+    xhr.send(file);
+  }
+
+  $("picker").addEventListener("change", function (e) { Array.prototype.forEach.call(e.target.files, upload); e.target.value = ""; });
+  var drop = $("drop");
+  ["dragenter", "dragover"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
+  ["dragleave", "drop"].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove("over"); }); });
+  drop.addEventListener("drop", function (e) { Array.prototype.forEach.call(e.dataTransfer.files, upload); });
+  document.addEventListener("dragover", function (e) { e.preventDefault(); });
+  document.addEventListener("drop", function (e) { e.preventDefault(); });
+
+  poll();
+  setInterval(function () { if (!$("appView").hidden) poll(); }, 2000);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+name: Nero APK
+
+on:
+  push:
+    branches: [ "claude/dynamic-island-android-ui-2kwbtz", "main" ]
+    paths:
+      - "nero/**"
+      - ".github/workflows/nero-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nero-apk
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: nero
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Compilar APK
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon --stacktrace assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk Nero.apk
+          ls -la Nero.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nero-apk
+          path: nero/Nero.apk
+
+      - name: Publicar no Release "nero-latest"
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete horizon-island-latest --yes --cleanup-tag || true
+          gh release delete nero-latest --yes --cleanup-tag || true
+          gh release create nero-latest Nero.apk \
+            --target "${{ github.sha }}" \
+            --prerelease \
+            --title "Nero — APK" \
+            --notes "APK do Nero (barra de vidro + assistente), compilado automaticamente a partir de ${{ github.sha }}. Baixe Nero.apk abaixo e instale no Android."
