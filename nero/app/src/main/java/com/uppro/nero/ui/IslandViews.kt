@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -299,7 +300,7 @@ fun CardContent(card: Card?, now: Long, actions: CardActions) {
 }
 
 @Composable
-private fun CardRow(content: @Composable () -> Unit) {
+private fun CardRow(content: @Composable RowScope.() -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -634,7 +635,7 @@ fun PanelContent(data: PanelData, actions: PanelActions) {
 }
 
 @Composable
-private fun WideTile(onClick: () -> Unit, content: @Composable () -> Unit) {
+private fun WideTile(onClick: () -> Unit, content: @Composable RowScope.() -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
