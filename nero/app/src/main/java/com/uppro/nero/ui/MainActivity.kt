@@ -260,22 +260,22 @@ private fun HomeScreen(onTab: (String) -> Unit) {
                 Spacer(Modifier.width(14.dp))
                 Column {
                     Text("Nero", color = Nero.Ink, fontSize = 34.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp)
-                    Text(if (running) "Ativo na base da tela" else "Desligado", color = if (running) Nero.Green else Nero.Ink2, fontSize = 14.sp)
+                    Text(if (running) "Ativo na lateral da tela" else "Desligado", color = if (running) Nero.Green else Nero.Ink2, fontSize = 14.sp)
                 }
             }
         }
         item {
             GlassCard {
                 Text(
-                    "Uma barra de vidro na base da tela, sempre à mão: fale com o Nero, anote, crie lembretes e mande arquivos para o notebook.",
+                    "Uma pílula de vidro pequena na lateral da tela. Ela cresce quando há música, timer ou caminho do Maps, e um toque abre o painel com tudo.",
                     color = Nero.Ink2, fontSize = 15.sp, lineHeight = 21.sp,
                 )
                 Spacer(Modifier.height(14.dp))
                 PrimaryButton(
                     text = when {
-                        running -> "Desligar a barra"
-                        canOverlay -> "Ligar a barra do Nero"
-                        else -> "Permitir e ligar a barra"
+                        running -> "Desligar a pílula"
+                        canOverlay -> "Ligar a pílula do Nero"
+                        else -> "Permitir e ligar a pílula"
                     },
                     dark = running,
                 ) {
@@ -303,7 +303,7 @@ private fun HomeScreen(onTab: (String) -> Unit) {
         item { SectionLabel("Permissões") }
         item {
             GlassCard {
-                PermissionRow(Icons.Rounded.Layers, "Sobrepor a outros apps", "Necessária para a barra aparecer em qualquer tela.", canOverlay) {
+                PermissionRow(Icons.Rounded.Layers, "Sobrepor a outros apps", "Necessária para a pílula aparecer em qualquer tela.", canOverlay) {
                     context.openUri(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, "package:${context.packageName}")
                 }
                 PermissionRow(Icons.Rounded.MusicNote, "Acesso a notificações", "Mostra a música tocando e o caminho do Maps/Waze.", hasListener) {
@@ -339,10 +339,10 @@ private fun HomeScreen(onTab: (String) -> Unit) {
         item { SectionLabel("Como usar") }
         item {
             GlassCard {
-                Tip("Toque em “Nero” na barra e fale: “lembre que amanhã às 15h tenho dentista”.")
-                Tip("Arraste a barra para cima para abrir o painel completo.")
+                Tip("Toque na pílula para abrir o painel. Segure para falar com o Nero: “lembre que amanhã às 15h tenho dentista”.")
+                Tip("Arraste a pílula para cima, para baixo ou para o outro lado da tela. Ela encaixa sozinha na lateral.")
                 Tip("Em qualquer app: Compartilhar → “Enviar ao notebook”.")
-                Tip("Em vídeo ou jogo em tela cheia a barra vira um tracinho. Toque nele para ela voltar.")
+                Tip("Em vídeo ou jogo em tela cheia a pílula vira um tracinho na borda. Toque nele para ela voltar.")
             }
         }
     }
@@ -685,9 +685,16 @@ private fun SettingsScreen() {
                 }
             }
         }
-        item { SectionLabel("Barra") }
+        item { SectionLabel("Pílula") }
         item {
             GlassCard {
+                Text("Lado da tela", color = Nero.Ink, fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Spacer(Modifier.height(8.dp))
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SmallButton("Esquerda", if (!s.pillRight) Nero.Green else Nero.Ink) { Store.updateSettings { it.copy(pillRight = false) } }
+                    SmallButton("Direita", if (s.pillRight) Nero.Green else Nero.Ink) { Store.updateSettings { it.copy(pillRight = true) } }
+                }
+                Spacer(Modifier.height(14.dp))
                 ToggleRow("Encolher em tela cheia", "Em vídeos e jogos vira um tracinho fino.", s.minimizeInFullscreen) { v ->
                     Store.updateSettings { it.copy(minimizeInFullscreen = v) }
                 }

@@ -5,12 +5,14 @@ O usuário rejeitou a proposta antiga (pílula/orbe neon "Horizon Island"). O Ne
 (iOS: vidro fosco, cantos bem arredondados, animações elásticas) e foi definido junto com o usuário.
 
 ### UX
-- **Base da tela:** a barra de atalhos de vidro fica sempre visível, logo acima da barra de gestos. Nunca no topo (câmera).
-- **Atalhos da barra:** pílula "Nero" (assistente), Notas, Lembretes/Agenda, Notebook, Alarme, Álbum favorito.
-- **Cartão de atividade** acima da barra, só quando há algo acontecendo, tingido pela cor do contexto
-  (música = cor/capa do álbum desfocada, como um mini-player; Maps/Waze, timer, compromisso em 15 min, carregando, notebook).
-- **Gestos:** toque nos atalhos; deslizar a barra para cima abre o painel (estilo Control Center); deslizar para baixo fecha.
-- **Tela cheia/paisagem:** tudo encolhe para um tracinho de vidro fino; um toque mostra a barra por alguns segundos.
+- **Pílula em miniatura no canto de baixo** (esquerdo por padrão; arrastável para cima e para o outro canto, encaixa sozinha).
+  Nunca no topo (câmera). A barra larga antiga foi rejeitada pelo usuário: "bem pequena, formato de pílula".
+- **Recolhida:** pílula escura pequena com o ícone do Nero.
+- **Com atividade:** cresce, mostra o número grande no meio ("20 segundos", "78 %", "15 min", capa + ondas da música)
+  e o **contorno vira barra de progresso** (cor = o que falta, cinza = o que já passou), como na referência do usuário.
+- **Gestos:** toque abre o painel (estilo Control Center, com a atividade atual e os atalhos: Nero, Notas, Lembretes,
+  Notebook, Alarme, Álbum favorito); segurar abre o assistente; arrastar move.
+- **Tela cheia/paisagem:** vira um tracinho no canto; um toque mostra a pílula por alguns segundos.
 - **Assistente offline (sem IA):** voz (SpeechRecognizer pt-BR) ou texto; `assistant/CommandParser` entende lembretes, notas, timer e alarme.
 - **Lembretes:** salvos no app (AlarmManager) e no Google Agenda via CalendarContract (sem login extra).
 - **Notebook:** servidor HTTP local (`notebook/NotebookServer`, sem bibliotecas) + página `assets/notebook.html`, protegido por PIN.
@@ -23,8 +25,8 @@ O usuário rejeitou a proposta antiga (pílula/orbe neon "Horizon Island"). O Ne
 
 ### Arquitetura
 - `data/Store` (notas, lembretes, ajustes persistidos) e `data/NeroState` (estado ao vivo em StateFlow).
-- `overlay/OverlayService` + `OverlayWindow` (Dialogs de sobreposição para barra, cartão, painel e tracinho).
-- `ui/IslandViews` (composables da ilha), `ui/MainActivity` (app: Início, Notas, Lembretes, Notebook, Ajustes).
+- `overlay/OverlayService` + `OverlayWindow` (Dialogs de sobreposição para a pílula e o painel) + `DragFrameLayout` (arrasto).
+- `ui/IslandViews` (`MiniPill` com `pillOutline`, painel e cartões), `ui/MainActivity` (app: Início, Notas, Lembretes, Notebook, Ajustes).
 - `media/NeroListenerService` lê MediaSessions e notificações de navegação.
 
 ### Testes rápidos

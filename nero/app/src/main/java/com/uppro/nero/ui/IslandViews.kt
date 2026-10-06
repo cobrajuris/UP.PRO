@@ -3,6 +3,7 @@ package com.uppro.nero.ui
 import android.os.Build
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -16,7 +17,9 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,6 +39,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -569,7 +573,7 @@ class PanelActions(
 )
 
 @Composable
-fun PanelContent(data: PanelData, actions: PanelActions) {
+fun PanelContent(data: PanelData, actions: PanelActions, activity: (@Composable () -> Unit)? = null) {
     val buzz = haptic()
     val density = LocalDensity.current
     val threshold = with(density) { 40.dp.toPx() }
@@ -598,6 +602,8 @@ fun PanelContent(data: PanelData, actions: PanelActions) {
                 .clip(CircleShape)
                 .background(Color.White.copy(alpha = 0.35f)),
         )
+        // O que está acontecendo agora (música, timer...) com os controles completos.
+        activity?.invoke()
         fun go(a: () -> Unit): () -> Unit = {
             buzz(HapticFeedbackConstants.VIRTUAL_KEY)
             a()
@@ -714,4 +720,290 @@ fun rememberNow(): Long {
         }
     }
     return now
+}
+
+
+// ---------------------------------------------------------------------------------------------
+// Pílula lateral em miniatura
+// ---------------------------------------------------------------------------------------------
+
+enum class PillMode { IDLE, ACTIVE, MIN }
+
+/** Laranja do contorno de progresso, como na referência. */
+private val PillOrange = Color(0xFFFF8A4C)
+private val PillTrack = Color(0xFF6E6E78)
+
+/**
+ * A pílula do Nero no canto de baixo. Recolhida é uma pílula escura pequena;
+ * com algo acontecendo cresce, mostra o número grande no meio e o contorno
+ * vira uma barra de progresso (cor = o que falta, cinza = o que já passou).
+ * Em tela cheia vira um tracinho.
+ */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MiniPill(
+    card: Card?,
+    minimized: Boolean,
+    onRight: Boolean,
+    onTap: () -> Unit,
+    onLongPress: () -> Unit,
+) {
+    val buzz = haptic()
+    val now = rememberNow()
+    val mode = when {
+        minimized -> PillMode.MIN
+        card == null -> PillMode.IDLE
+        else -> PillMode.ACTIVE
+    }
+    Box(
+        Modifier.combinedClickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null,
+            role = Role.Button,
+            onClickLabel = "Abrir o Nero",
+            onLongClickLabel = "Falar com o Nero",
+            onLongClick = {
+                buzz(HapticFeedbackConstants.LONG_PRESS)
+                onLongPress()
+            },
+            onClick = {
+                buzz(HapticFeedbackConstants.CONTEXT_CLICK)
+                onTap()
+            },
+        ),
+    ) {
+        AnimatedContent(
+            targetState = mode to card?.kind,
+            transitionSpec = {
+                (fadeIn(tween(220, delayMillis = 70)) togetherWith fadeOut(tween(90)))
+                    .using(SizeTransform(clip = false) { _, _ -> spring(dampingRatio = 0.68f, stiffness = 380f) })
+            },
+            contentAlignment = if (onRight) Alignment.BottomEnd else Alignment.BottomStart,
+            label = "pill",
+        ) { (m, _) ->
+            when (m) {
+                PillMode.MIN -> Box(
+                    Modifier.size(width = 52.dp, height = 18.dp),
+                    contentAlignment = Alignment.BottomCenter,
+                ) {
+                    Box(
+                        Modifier
+                            .padding(bottom = 4.dp)
+                            .size(width = 38.dp, height = 5.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.45f)),
+                    )
+                }
+                PillMode.IDLE -> Box(
+                    Modifier
+                        .size(width = 64.dp, height = 34.dp)
+                        .clip(CircleShape)
+                        .glassHighlight(17.dp)
+                        .pillOutline(1f, PillTrack.copy(alpha = 0.55f), PillTrack.copy(alpha = 0.55f), stroke = 2.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Rounded.AutoAwesome, "Nero", tint = Color.White.copy(alpha = 0.95f), modifier = Modifier.size(17.dp))
+                }
+                PillMode.ACTIVE -> {
+                    val c = card
+                    if (c != null) {
+                        val look = pillLook(c, now)
+                        Row(
+                            Modifier
+                                .height(54.dp)
+                                .widthIn(min = 118.dp)
+                                .clip(CircleShape)
+                                .pillOutline(look.fraction, look.accent, PillTrack)
+                                .padding(horizontal = 18.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                        ) {
+                            look.leading?.invoke()
+                            if (look.value.isNotEmpty()) Text(
+                                look.value,
+                                color = Color.White,
+                                fontSize = 22.sp,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = androidx.compose.ui.text.TextStyle(fontFeatureSettings = "tnum"),
+                                modifier = Modifier.widthIn(max = 120.dp),
+                            )
+                            if (look.label.isNotEmpty()) {
+                                Text(
+                                    look.label,
+                                    color = Color.White.copy(alpha = 0.88f),
+                                    fontSize = 12.5.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    maxLines = 1,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Como cada atividade aparece na pílula: ícone opcional, número grande, legenda e progresso. */
+private class PillLook(
+    val value: String,
+    val label: String,
+    val fraction: Float,
+    val accent: Color,
+    val leading: (@Composable () -> Unit)? = null,
+)
+
+private fun pillLook(card: Card, now: Long): PillLook = when (card) {
+    is Card.Timer -> {
+        val remaining = card.t.remainingAt(now)
+        val secs = (remaining + 999) / 1000
+        val fraction = if (card.t.totalMs > 0) remaining.toFloat() / card.t.totalMs else 0f
+        if (secs < 60) PillLook("$secs", if (secs == 1L) "segundo" else "segundos", fraction, PillOrange)
+        else PillLook(formatClock(remaining), "min", fraction, PillOrange)
+    }
+    is Card.Music -> {
+        val m = card.m
+        val accent = m.artColor?.let { brighten(Color(it)) } ?: Nero.Pink
+        val fraction = if (m.durationMs > 0) 1f - m.positionAt(now).toFloat() / m.durationMs else 1f
+        PillLook(
+            value = "",
+            label = "",
+            fraction = fraction,
+            accent = accent,
+            leading = {
+                val art = m.art
+                if (art != null) {
+                    Image(art, null, contentScale = ContentScale.Crop, modifier = Modifier.size(30.dp).clip(CircleShape))
+                } else {
+                    Icon(Icons.Rounded.MusicNote, null, tint = Color.White, modifier = Modifier.size(22.dp))
+                }
+                Waveform(playing = m.isPlaying, bars = 4, color = accent)
+            },
+        )
+    }
+    is Card.Nav -> PillLook(
+        value = card.n.title,
+        label = "",
+        fraction = 1f,
+        accent = Nero.Blue,
+        leading = {
+            val icon = card.n.icon
+            if (icon != null) {
+                Image(icon, null, colorFilter = ColorFilter.tint(Color.White), modifier = Modifier.size(24.dp))
+            } else {
+                Icon(Icons.Rounded.Navigation, null, tint = Color.White, modifier = Modifier.size(22.dp))
+            }
+        },
+    )
+    is Card.Soon -> {
+        val minutes = ((card.u.at - System.currentTimeMillis()) / 60_000L).coerceAtLeast(0)
+        PillLook(
+            value = if (minutes <= 0) "agora" else "$minutes",
+            label = if (minutes <= 0) "" else "min",
+            fraction = (minutes / 15f).coerceIn(0.02f, 1f),
+            accent = Nero.Red,
+            leading = { Icon(Icons.Rounded.CalendarMonth, null, tint = Nero.Red, modifier = Modifier.size(20.dp)) },
+        )
+    }
+    is Card.Charging -> PillLook(
+        value = "${card.c.level}",
+        label = "%",
+        fraction = card.c.level / 100f,
+        accent = Nero.Green,
+        leading = { Icon(Icons.Rounded.Bolt, null, tint = Nero.Green, modifier = Modifier.size(20.dp)) },
+    )
+    is Card.Transfer -> {
+        val t = card.t
+        val pct = if (t.totalBytes > 0) (t.doneBytes * 100 / t.totalBytes).toInt() else 0
+        PillLook(
+            value = when {
+                t.direction == TransferDirection.READY -> "pronto"
+                t.finished -> "ok"
+                else -> "$pct"
+            },
+            label = if (!t.finished && t.direction != TransferDirection.READY) "%" else "",
+            fraction = if (t.finished || t.direction == TransferDirection.READY) 1f else pct / 100f,
+            accent = Nero.Blue,
+            leading = {
+                Icon(
+                    if (t.direction == TransferDirection.FROM_NOTEBOOK) Icons.Rounded.Download else Icons.Rounded.LaptopMac,
+                    null, tint = Color.White, modifier = Modifier.size(20.dp),
+                )
+            },
+        )
+    }
+    is Card.Alert -> PillLook(
+        value = card.a.title,
+        label = "",
+        fraction = 1f,
+        accent = Nero.Red,
+        leading = { Icon(Icons.Rounded.NotificationsActive, null, tint = Nero.Red, modifier = Modifier.size(20.dp)) },
+    )
+}
+
+private fun brighten(c: Color): Color {
+    val hsv = FloatArray(3)
+    android.graphics.Color.colorToHSV(
+        android.graphics.Color.rgb((c.red * 255).toInt(), (c.green * 255).toInt(), (c.blue * 255).toInt()), hsv,
+    )
+    hsv[1] = hsv[1].coerceIn(0.45f, 0.9f)
+    hsv[2] = 1f
+    return Color(android.graphics.Color.HSVToColor(hsv))
+}
+
+/**
+ * Contorno da pílula usado como barra de progresso: começa no meio da base,
+ * sobe pela direita, passa pelo topo e desce pela esquerda. [fraction] é a parte
+ * colorida (o que falta); o resto fica cinza.
+ */
+fun Modifier.pillOutline(fraction: Float, accent: Color, track: Color, stroke: Dp = 3.5.dp): Modifier = this.drawBehind {
+    val sw = stroke.toPx()
+    val inset = sw / 2 + 1.5.dp.toPx()
+    val w = size.width
+    val h = size.height
+    val r = (h / 2 - inset).coerceAtLeast(1f)
+    val left = inset
+    val right = w - inset
+    val top = inset
+    val bottom = h - inset
+    val path = androidx.compose.ui.graphics.Path().apply {
+        moveTo(w / 2, bottom)
+        lineTo(right - r, bottom)
+        arcTo(androidx.compose.ui.geometry.Rect(right - 2 * r, top, right, bottom), 90f, -180f, false)
+        lineTo(left + r, top)
+        arcTo(androidx.compose.ui.geometry.Rect(left, top, left + 2 * r, bottom), 270f, -180f, false)
+        lineTo(w / 2, bottom)
+    }
+    val f = fraction.coerceIn(0f, 1f)
+    val measure = androidx.compose.ui.graphics.PathMeasure()
+    measure.setPath(path, false)
+    val total = measure.length
+    val strokeStyle = Stroke(width = sw, cap = StrokeCap.Round)
+    // Parte cinza: o que já passou (do fim do progresso até o ponto de partida).
+    if (f < 1f) {
+        val rest = androidx.compose.ui.graphics.Path()
+        measure.getSegment(total * f, total, rest, true)
+        drawPath(rest, track, style = strokeStyle)
+    }
+    if (f > 0f) {
+        val done = androidx.compose.ui.graphics.Path()
+        measure.getSegment(0f, total * f, done, true)
+        drawPath(done, accent, style = strokeStyle)
+    }
+}
+
+/** A atividade atual dentro do painel, com fundo na cor do contexto. */
+@Composable
+fun PanelActivity(card: Card, actions: CardActions) {
+    val now = rememberNow()
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color(card.tint()).copy(alpha = 0.55f)),
+    ) {
+        CardContent(card, now, actions)
+    }
 }

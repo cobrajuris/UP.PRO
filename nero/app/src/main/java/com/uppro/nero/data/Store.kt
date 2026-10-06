@@ -27,6 +27,10 @@ data class Settings(
     val albumName: String = "",
     val albumLink: String = "",
     val notebookPin: String = "",
+    /** Pílula no canto direito (true) ou esquerdo (false, padrão). */
+    val pillRight: Boolean = false,
+    /** Distância da pílula até a base, como fração da altura da tela (0 = bem embaixo). */
+    val pillY: Float = 0.02f,
 )
 
 /** Persistência simples em JSON (notas e lembretes) e SharedPreferences (ajustes). */
@@ -68,6 +72,8 @@ object Store {
             albumName = p.getString("albumName", "") ?: "",
             albumLink = p.getString("albumLink", "") ?: "",
             notebookPin = pin,
+            pillRight = p.getBoolean("pillRight", false),
+            pillY = p.getFloat("pillBottom", 0.02f),
         )
         initialized = true
     }
@@ -85,6 +91,8 @@ object Store {
             .putString("albumName", s.albumName)
             .putString("albumLink", s.albumLink)
             .putString("pin", s.notebookPin)
+            .putBoolean("pillRight", s.pillRight)
+            .putFloat("pillBottom", s.pillY)
             .apply()
     }
 
