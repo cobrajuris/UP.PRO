@@ -260,14 +260,14 @@ private fun HomeScreen(onTab: (String) -> Unit) {
                 Spacer(Modifier.width(14.dp))
                 Column {
                     Text("Nero", color = Nero.Ink, fontSize = 34.sp, fontWeight = FontWeight.Bold, letterSpacing = (-0.5).sp)
-                    Text(if (running) "Ativo na lateral da tela" else "Desligado", color = if (running) Nero.Green else Nero.Ink2, fontSize = 14.sp)
+                    Text(if (running) "Ativo no canto da tela" else "Desligado", color = if (running) Nero.Green else Nero.Ink2, fontSize = 14.sp)
                 }
             }
         }
         item {
             GlassCard {
                 Text(
-                    "Uma pílula de vidro pequena na lateral da tela. Ela cresce quando há música, timer ou caminho do Maps, e um toque abre o painel com tudo.",
+                    "Uma pílula pequena no canto de baixo da tela. Quando há música, timer ou caminho do Maps ela cresce e o contorno vira uma barra de progresso. Um toque abre o painel com tudo.",
                     color = Nero.Ink2, fontSize = 15.sp, lineHeight = 21.sp,
                 )
                 Spacer(Modifier.height(14.dp))
@@ -340,7 +340,7 @@ private fun HomeScreen(onTab: (String) -> Unit) {
         item {
             GlassCard {
                 Tip("Toque na pílula para abrir o painel. Segure para falar com o Nero: “lembre que amanhã às 15h tenho dentista”.")
-                Tip("Arraste a pílula para cima, para baixo ou para o outro lado da tela. Ela encaixa sozinha na lateral.")
+                Tip("Arraste a pílula para cima ou para o outro canto. Ela encaixa sozinha na esquerda ou na direita.")
                 Tip("Em qualquer app: Compartilhar → “Enviar ao notebook”.")
                 Tip("Em vídeo ou jogo em tela cheia a pílula vira um tracinho na borda. Toque nele para ela voltar.")
             }
@@ -661,7 +661,7 @@ private fun SettingsScreen() {
         item {
             GlassCard {
                 Text(
-                    "No Spotify ou YouTube Music, abra o álbum → Compartilhar → Copiar link, e cole aqui. O botão de álbum da barra abre ele direto.",
+                    "No Spotify ou YouTube Music, abra o álbum → Compartilhar → Copiar link, e cole aqui. O atalho de álbum do painel abre ele direto.",
                     color = Nero.Ink2, fontSize = 14.sp, lineHeight = 20.sp,
                 )
                 Spacer(Modifier.height(12.dp))
